@@ -15,6 +15,7 @@ namespace Dealio.Services
         {
             services.AddScoped<IAddressServices,           AddressServices>();
             services.AddScoped<IApplicationUserServices,   ApplicationUserServices>();
+            services.AddScoped<IAuthenticationService, AuthenticationServices>();
             services.AddScoped<ICategoryServices,          CategoryServices>();
             services.AddScoped<ICommissionServices,        CommissionServices>();
             services.AddScoped<IDeliveryProfileServices,   DeliveryProfileServices>();
@@ -24,6 +25,8 @@ namespace Dealio.Services
             services.AddScoped<IRatingServices,            RatingServices>();
             services.AddScoped<ISellerTransactionServices, SellerTransactionServices>();
             services.AddScoped<IUserProfileServices,       UserProfileServices>();
+            services.AddScoped<IEmailService, EmailService>();
+
 
             services.AddHttpClient<IGeoLocationService,    NominatimGeoLocationService>();
             services.AddHostedService<OrderDeliveryAttach>();

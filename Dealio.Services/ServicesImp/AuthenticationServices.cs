@@ -57,6 +57,7 @@ namespace Dealio.Services.ServicesImp
                 return ServiceResult<AuthenticationResult>.Failure(ServiceResultEnum.IncorrectEmailOrPassword);
             }
 
+            var role = (await userManager.GetRolesAsync(user)).FirstOrDefault();
 
             var token = await GenerateAccessToken(user);
             var authenticationResult = new AuthenticationResult
@@ -65,6 +66,8 @@ namespace Dealio.Services.ServicesImp
                 Email = user.Email,
                 UserName = user.UserName,
                 AccessToken = token,
+                IsConfirmed = user.EmailConfirmed,
+                Role = role
             };
 
             return ServiceResult<AuthenticationResult>.Success(authenticationResult, ServiceResultEnum.Success);

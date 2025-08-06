@@ -84,6 +84,7 @@ namespace Dealio.Services.ServicesImp
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 await transaction.RollbackAsync();
                 return ServiceResult<ApplicationUser>.Failure(ServiceResultEnum.Failed);
             }

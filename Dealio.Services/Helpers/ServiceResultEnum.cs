@@ -18,6 +18,7 @@ namespace Dealio.Services.Helpers
         UserAlreadyExists,
         NotConfirmed,
         LockedOut,
-        IncorrectEmailOrPassword
+        IncorrectEmailOrPassword,
+        NoAccess
     }
 }

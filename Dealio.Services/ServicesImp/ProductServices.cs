@@ -36,19 +36,23 @@ namespace Dealio.Services.ServicesImp
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.InnerException + "-----------------------------");
                 return ServiceResult<Product>.Failure(ServiceResultEnum.Failed);
             }
 
         }
 
-        public async Task<ServiceResult<string>> DeleteProduct(Product product)
+        public async Task<ServiceResult<string>> DeleteProduct(int productId, string SellerId)
         {
-            var existProduct = await productRepository.GetByIdAsync(product.Id);
+            var existProduct = await productRepository.GetByIdAsync(productId);
             if (existProduct == null)
                 return ServiceResult<string>.Failure(ServiceResultEnum.NotFound);
 
+            if (existProduct.SellerId != SellerId)
+                return ServiceResult<string>.Failure(ServiceResultEnum.NoAccess);
+
             var ordered = await orderRepository.GetTableNoTracking()
-                .AnyAsync(o => o.ProductId == product.Id);
+                .AnyAsync(o => o.ProductId == productId);
 
             if (ordered)
                 return ServiceResult<string>.Failure(ServiceResultEnum.Ordered);
@@ -101,14 +105,23 @@ namespace Dealio.Services.ServicesImp
             if (existProduct == null)
                 return ServiceResult<Product>.Failure(ServiceResultEnum.NotFound);
 
+            if (existProduct.SellerId != product.SellerId)
+                return ServiceResult<Product>.Failure(ServiceResultEnum.NoAccess);
+
             var ordered = await orderRepository.GetTableNoTracking()
-                .AnyAsync(o => o.ProductId == product.Id);
+                                               .AnyAsync(o => o.ProductId == product.Id);
             if (ordered)
                 return ServiceResult<Product>.Failure(ServiceResultEnum.Ordered);
 
 
             try
             {
+                existProduct.Name        = product.Name;
+                existProduct.Description = product.Description;
+                existProduct.CategoryId  = product.CategoryId;
+                existProduct.Price       = product.Price;
+                existProduct.SellerId    = product.SellerId;
+
                 await productRepository.UpdateAsync(existProduct);
                 return ServiceResult<Product>.Success(existProduct, ServiceResultEnum.Updated);
             }
