@@ -41,13 +41,13 @@ namespace Dealio.Services.BackgroundServices
             IUserProfileRepository userRepo,
             IGeoLocationService geoService)
         {
-            var pendingOrders = await orderRepo.GetTableNoTracking()
+            var pendingOrders = await orderRepo.GetTableAsTracking()
                 .Include(o => o.Product)
                     .ThenInclude(p => p.Seller)
                         .ThenInclude(s => s.Address)
                 .Include(o => o.Buyer)
                     .ThenInclude(b => b.Address)
-                .Where(o => o.DeliveryId == null)
+                .Where(o => o.DeliveryId == null && o.OrderStatus == OrderStatus.Pending)
                 .ToListAsync();
 
             var deliveries = await deliveryRepo.GetTableNoTracking()
@@ -61,7 +61,7 @@ namespace Dealio.Services.BackgroundServices
                 var buyer = order.Buyer;
 
                 var sellerCoords = await geoService.GetCoordinatesAsync(seller.Address);
-                var buyerCoords = await geoService.GetCoordinatesAsync(buyer.Address);
+                var buyerCoords  = await geoService.GetCoordinatesAsync(buyer.Address);
 
                 DeliveryProfile? bestDelivery = null;
                 double minScore = double.MaxValue;
