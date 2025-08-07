@@ -3,7 +3,6 @@ using Dealio.Core.Features.Product.Commands.Models;
 using Dealio.Core.Features.Product.Queries.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -14,7 +13,6 @@ namespace Dealio.API.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IMediator mediator;
-
         public ProductController(IMediator mediator)
         {
             this.mediator = mediator;
@@ -36,8 +34,8 @@ namespace Dealio.API.Controllers
                 Price = product.Price,
                 CategoryId = product.CategoryId,
                 Images = product.Images
-                
-            }
+
+            };
             var response = await mediator.Send(command);
             return Ok(response);
         }

@@ -7,7 +7,9 @@ using MediatR;
 
 namespace Dealio.Core.Features.Authentication.Commands.Handler
 {
-    public class AuthenticationCommandsHandler : IRequestHandler<LoginCommand, Response<AuthenticationResult>>
+    public class AuthenticationCommandsHandler : IRequestHandler<LoginCommand, Response<AuthenticationResult>>,
+                                                 IRequestHandler<ForgetPasswordCommand, Response<string>>,
+                                                 IRequestHandler<ResetPasswordCommand, Response<string>>
     {
         private readonly IAuthenticationService authenticationService;
 
@@ -34,6 +36,32 @@ namespace Dealio.Core.Features.Authentication.Commands.Handler
 
             };
 
+        }
+
+        public async Task<Response<string>> Handle(ForgetPasswordCommand request, CancellationToken cancellationToken)
+        {
+            var result = await authenticationService.ForgetPassowrdHandler(request.Email);
+
+            return result switch
+            {
+                ServiceResultEnum.Success => Response<string>.Success("Password reset email sent successfully"),
+                ServiceResultEnum.NotFound => Response<string>.NotFound("Email not found"),
+                ServiceResultEnum.NotConfirmed => Response<string>.BadRequest("Email not confirmed"),
+                _ or ServiceResultEnum.Failed => Response<string>.BadRequest("An error occurred while processing your request")
+            };
+        }
+
+        public async Task<Response<string>> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
+        {
+            var result = await authenticationService.ResetPasswordHandler(request.Email, request.Token, request.NewPassword);
+
+            return result switch
+            {
+                ServiceResultEnum.Success => Response<string>.Success("Password reset successfully"),
+                ServiceResultEnum.NotFound => Response<string>.NotFound("Email not found"),
+                ServiceResultEnum.NotConfirmed => Response<string>.BadRequest("Email not confirmed"),
+                _ or ServiceResultEnum.Failed => Response<string>.BadRequest("An error occurred while processing your request")
+            };
         }
     }
 }

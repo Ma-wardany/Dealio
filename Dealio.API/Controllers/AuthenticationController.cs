@@ -22,5 +22,19 @@ namespace Dealio.API.Controllers
             var response = await mediator.Send(command);
             return Ok(response);
         }
+
+        [HttpPost("forget-password")]
+        public async Task<IActionResult> ForgetPassword([FromForm] ForgetPasswordCommand command)
+        {
+            var response = await mediator.Send(command);
+            return Ok(response);
+        }
+
+        [HttpGet("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromQuery] ResetPasswordCommand command)
+        {
+            var response = await mediator.Send(command);
+            return Content("response success");
+        }
     }
 }
