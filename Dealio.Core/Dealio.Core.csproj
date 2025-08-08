@@ -17,6 +17,8 @@
     <Folder Include="Features\Authentication\Commands\Validation\" />
     <Folder Include="Features\Authentication\Queries\" />
     <Folder Include="Features\Orders\Commands\Validation\" />
+    <Folder Include="Features\UserProfile\Queries\" />
+    <Folder Include="Mappings\UserProfile\Queries\" />
   </ItemGroup>
 
   <ItemGroup>

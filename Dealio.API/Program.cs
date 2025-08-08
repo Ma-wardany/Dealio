@@ -63,6 +63,7 @@ namespace Dealio.API
                     c.RoutePrefix = string.Empty; // يخلي Swagger UI يفتح على رابط الصفحة الرئيسية
                 });
             }
+            app.UseStaticFiles();
 
             app.UseAuthentication();
             app.UseAuthorization();

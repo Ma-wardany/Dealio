@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Dealio.Domain.Entities;
+using Dealio.Services.Helpers;
+
 
 namespace Dealio.Services.Interfaces
 {
-    internal interface IUserProfileServices
+    public interface IUserProfileServices
     {
+        public Task<ServiceResult<UserProfile>> CreateUserProfile(UserProfile userProfile);
+        public Task<ServiceResult<UserProfile>> UpdateUserProfile(UserProfile userProfile);
+        public Task<ServiceResult<UserProfile>> GetUserProfile(string userId);
     }
 }
