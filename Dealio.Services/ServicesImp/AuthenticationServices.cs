@@ -84,14 +84,10 @@ namespace Dealio.Services.ServicesImp
                 return ServiceResultEnum.NotConfirmed;
 
             var token = await userManager.GeneratePasswordResetTokenAsync(user);
-            var request = httpContextAccessor.HttpContext?.Request;
-            var location = urlHelper.Action(
-                action: "ResetPassword",
-                controller: "Authentication",
-                values: new { token = token, email = user.Email });
-            var resetLink = $"{request.Scheme}://{request.Host}{location}";
+            var request = httpContextAccessor.HttpContext!.Request;
+            var returnUrl = request.Scheme + "://" + request.Host + urlHelper.Action("ResetPassword", "Authentication", new { Email = user.Email, Token = token });
 
-            var message = $"Please reset your password by clicking here: <a href='{resetLink}'>Reset Password</a>";
+            var message = $"Please reset your password by clicking here: <a href='{returnUrl}'>Reset Password</a>";
             var emailServiceResult = await emailService.SendEmailAsync(new EmailModel
             {
                 Email = user.Email,

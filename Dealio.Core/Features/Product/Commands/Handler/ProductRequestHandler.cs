@@ -7,6 +7,7 @@ using Dealio.Services.Helpers;
 using Dealio.Services.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace Dealio.Core.Features.Product.Commands.Handler
 {
@@ -17,12 +18,18 @@ namespace Dealio.Core.Features.Product.Commands.Handler
         private readonly IMapper mapper;
         private readonly IProductServices productServices;
         private readonly IWebHostEnvironment webHostEnvironment;
+        private readonly IHttpContextAccessor httpContextAccessor;
 
-        public ProductRequestHandler(IMapper mapper, IProductServices productServices, IWebHostEnvironment webHostEnvironment)
+        public ProductRequestHandler(
+            IMapper mapper,
+            IProductServices productServices,
+            IWebHostEnvironment webHostEnvironment,
+            IHttpContextAccessor httpContextAccessor)
         {
             this.mapper = mapper;
             this.productServices = productServices;
             this.webHostEnvironment = webHostEnvironment;
+            this.httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<Response<ProductDto>> Handle(AddProductCommand request, CancellationToken cancellationToken)
@@ -34,20 +41,24 @@ namespace Dealio.Core.Features.Product.Commands.Handler
 
             foreach(var image in request.Images)
             {
-                if(image != null && image.Length > 0)
-                {
-                    string uniqueFileNmae = $"{Guid.NewGuid().ToString()}_{image.FileName}";
-                    string filePath = Path.Combine(ImageUploadDirectory, uniqueFileNmae);
-                    using(var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        image.CopyTo(stream);
-                    }
+                var imageName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
+                var imageFolder = Path.Combine(webHostEnvironment.WebRootPath, "Images");
+                var imagePath = Path.Combine(imageFolder, imageName);
 
-                    ImagePathes.Add(new ProductImage
-                    {
-                        ImgUrl = uniqueFileNmae
-                    });
+                // Ensure directory exists
+                if (!Directory.Exists(imageFolder))
+                    Directory.CreateDirectory(imageFolder);
+
+                using (var stream = new FileStream(imagePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(stream);
                 }
+                var baseUrl = $"{httpContextAccessor.HttpContext.Request.Scheme}://{httpContextAccessor.HttpContext.Request.Host}";
+
+                ImagePathes.Add(new ProductImage
+                {
+                    ImgUrl = $"{baseUrl}/Images/{imageName}"
+                });
             }
 
 
