@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Dealio.Domain.Entities;
+using Dealio.Services.Helpers;
 
 namespace Dealio.Services.Interfaces
 {
-    internal interface IDeliveryProfileServices
+    public interface IDeliveryProfileServices
     {
+        public Task<ServiceResult<DeliveryProfile>> CreateDeliveryProfileAsync(ApplicationUser user);
     }
 }
