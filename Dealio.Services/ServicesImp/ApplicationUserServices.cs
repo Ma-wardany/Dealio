@@ -6,6 +6,8 @@ using Dealio.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 
 namespace Dealio.Services.ServicesImp
 {
@@ -33,12 +35,10 @@ namespace Dealio.Services.ServicesImp
 
         public async Task<ServiceResult<ApplicationUser>> Register(ApplicationUser applicationUser, string password)
         {
-            // Better to await here to avoid deadlocks
             var existingUser = await userManager.FindByEmailAsync(applicationUser.Email!);
             if (existingUser != null)
                 return ServiceResult<ApplicationUser>.Failure(ServiceResultEnum.UserAlreadyExists);
 
-            // Begin a transaction manually
             await using var transaction = await context.Database.BeginTransactionAsync();
             try
             {
@@ -57,10 +57,14 @@ namespace Dealio.Services.ServicesImp
                 }
 
                 var code = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
+
+                // Encode token for URL safety
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
                 var request = httpContext.HttpContext!.Request;
                 var relativeUrl = urlHelper.Action(
-                    "ConfirmEmail",                                 
-                    "ApplicationUser",       
+                    "ConfirmEmail",
+                    "ApplicationUser",
                     new { userId = applicationUser.Id, code = code }
                 );
                 var returnUrl = $"{request.Scheme}://{request.Host}{relativeUrl}";
@@ -72,7 +76,7 @@ namespace Dealio.Services.ServicesImp
                     Subject = "Confirm your email",
                     Message = message
                 });
-                
+
                 if (emailServiceResult != ServiceResultEnum.Success)
                 {
                     await transaction.RollbackAsync();
@@ -89,5 +93,25 @@ namespace Dealio.Services.ServicesImp
                 return ServiceResult<ApplicationUser>.Failure(ServiceResultEnum.Failed);
             }
         }
+
+
+
+
+        public async Task<ServiceResultEnum> ConfirmEmail(string userId, string code)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(code))
+                return ServiceResultEnum.NotFound;
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+                return ServiceResultEnum.NotFound;
+
+            // Decode token before passing to ConfirmEmailAsync
+            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+
+            var result = await userManager.ConfirmEmailAsync(user, code);
+            return result.Succeeded ? ServiceResultEnum.Success : ServiceResultEnum.Failed;
+        }
+
     }
 }

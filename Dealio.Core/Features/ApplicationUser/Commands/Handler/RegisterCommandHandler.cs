@@ -4,12 +4,14 @@ using Dealio.Core.DTOs.ApplicationUser;
 using Dealio.Core.Features.ApplicationUser.Commands.Models;
 using Dealio.Services.Helpers;
 using Dealio.Services.Interfaces;
+using Dealio.Services.ServicesImp;
 using MediatR;
 
 
 namespace Dealio.Core.Features.ApplicationUser.Commands.Handler
 {
-    public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Response<UserDto>>
+    public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Response<UserDto>>,
+                                          IRequestHandler<ConfirmEmailCommand, Response<string>>
     {
         private readonly IMapper mapper;
         private readonly IApplicationUserServices applicationUserServices;
@@ -34,6 +36,18 @@ namespace Dealio.Core.Features.ApplicationUser.Commands.Handler
                 ServiceResultEnum.UserAlreadyExists => Response<UserDto>.BadRequest("user is already exist"),
                 ServiceResultEnum.NotFound          => Response<UserDto>.NotFound("user not found"),
                 _ or ServiceResultEnum.Failed       => Response<UserDto>.BadRequest("something went wrong!")
+            };
+        }
+
+        public async Task<Response<string>> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)
+        {
+            var result = await applicationUserServices.ConfirmEmail(request.UserId, request.Code);
+
+            return result switch
+            {
+                ServiceResultEnum.Success => Response<string>.Success("Email confirmed successfully"),
+                ServiceResultEnum.NotFound => Response<string>.NotFound("User or code not found"),
+                _ or ServiceResultEnum.Failed => Response<string>.BadRequest("Failed to confirm email")
             };
         }
     }

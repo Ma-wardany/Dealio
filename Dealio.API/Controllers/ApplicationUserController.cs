@@ -23,5 +23,12 @@ namespace Dealio.API.Controllers
 
             return Ok(response);
         }
+
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromQuery] ConfirmEmailCommand command)
+        {
+            var response = await mediator.Send(command);
+            return Ok(response);
+        }
     }
 }
