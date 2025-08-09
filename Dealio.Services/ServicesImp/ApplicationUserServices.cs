@@ -15,20 +15,20 @@ namespace Dealio.Services.ServicesImp
     {
         private readonly UserManager<ApplicationUser> userManager;
         private readonly ApplicationDbContext context;
-        private readonly IHttpContextAccessor httpContext;
+        private readonly IHttpContextAccessor httpContextAccessor;
         private readonly IUrlHelper urlHelper;
         private readonly IEmailService emailService;
 
         public ApplicationUserServices(
             UserManager<ApplicationUser> userManager,
             ApplicationDbContext context,
-            IHttpContextAccessor httpContext,
+            IHttpContextAccessor httpContextAccessor,
             IUrlHelper urlHelper,
             IEmailService emailService)
         {
             this.userManager = userManager;
             this.context     = context;
-            this.httpContext = httpContext;
+            this.httpContextAccessor = httpContextAccessor;
             this.urlHelper   = urlHelper;
             this.emailService = emailService;
         }
@@ -57,19 +57,11 @@ namespace Dealio.Services.ServicesImp
                 }
 
                 var code = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
-
-                // Encode token for URL safety
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-                var request = httpContext.HttpContext!.Request;
-                var relativeUrl = urlHelper.Action(
-                    "ConfirmEmail",
-                    "ApplicationUser",
-                    new { userId = applicationUser.Id, code = code }
-                );
-                var returnUrl = $"{request.Scheme}://{request.Host}{relativeUrl}";
-
+                var request = httpContextAccessor.HttpContext!.Request;
+                var returnUrl = request.Scheme + "://" + request.Host + urlHelper.Action("ConfirmEmail", "ApplicationUser", new { userId = applicationUser.Id, code = code });
                 var message = $"To confirm your email, click this link: <a href='{returnUrl}'>Confirm Email</a>";
+
+
                 var emailServiceResult = await emailService.SendEmailAsync(new EmailModel
                 {
                     Email = applicationUser.Email!,
@@ -99,15 +91,12 @@ namespace Dealio.Services.ServicesImp
 
         public async Task<ServiceResultEnum> ConfirmEmail(string userId, string code)
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(code))
+            if (userId == null || code == null)
                 return ServiceResultEnum.NotFound;
 
             var user = await userManager.FindByIdAsync(userId);
             if (user == null)
                 return ServiceResultEnum.NotFound;
-
-            // Decode token before passing to ConfirmEmailAsync
-            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
 
             var result = await userManager.ConfirmEmailAsync(user, code);
             return result.Succeeded ? ServiceResultEnum.Success : ServiceResultEnum.Failed;
