@@ -1,4 +1,5 @@
-﻿using Dealio.API.DTOs.Product;
+﻿using Dealio.API.Base;
+using Dealio.API.DTOs.Product;
 using Dealio.Core.Features.Product.Commands.Models;
 using Dealio.Core.Features.Product.Queries.Models;
 using MediatR;
@@ -10,13 +11,8 @@ namespace Dealio.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductController : ControllerBase
+    public class ProductController : AppController
     {
-        private readonly IMediator mediator;
-        public ProductController(IMediator mediator)
-        {
-            this.mediator = mediator;
-        }
 
         [Authorize]
         [HttpPost("create")]
@@ -26,6 +22,7 @@ namespace Dealio.API.Controllers
             if (userId == null)
                 return Unauthorized("unauthorized user");
 
+            Console.WriteLine($"userId: {userId} ---------------------------------------------");
             var command = new AddProductCommand
             {
                 SellerId = userId,
@@ -36,8 +33,8 @@ namespace Dealio.API.Controllers
                 Images = product.Images
 
             };
-            var response = await mediator.Send(command);
-            return Ok(response);
+            var response = await Mediator.Send(command);
+            return FinalResponse(response);
         }
 
         [Authorize]
@@ -50,8 +47,8 @@ namespace Dealio.API.Controllers
 
             var command = new DeleteProductCommand { ProductId = prductId, SellerId = userId };
 
-            var response = await mediator.Send(command);
-            return Ok(response);
+            var response = await Mediator.Send(command);
+            return FinalResponse(response);
         }
 
         [Authorize]
@@ -71,15 +68,15 @@ namespace Dealio.API.Controllers
                 Price = product.Price,
                 CategoryId = product.CategoryId
             };
-            var response = await mediator.Send(command);
-            return Ok(response);
+            var response = await Mediator.Send(command);
+            return FinalResponse(response);
         }
 
         [HttpGet("all")]
         public async Task<IActionResult> GetAllProducts()
         {
-            var response = await mediator.Send(new GetAllProductsQuery());
-            return Ok(response);
+            var response = await Mediator.Send(new GetAllProductsQuery());
+            return FinalResponse(response);
         }
 
         [HttpGet("products-by-user")]
@@ -90,22 +87,22 @@ namespace Dealio.API.Controllers
                 return Unauthorized("unauthorized user");
 
             var query = new GetProductsByUserQuery { UserId = userId };
-            var response = await mediator.Send(query);
-            return Ok(response);
+            var response = await Mediator.Send(query);
+            return FinalResponse(response);
         }
 
         [HttpGet("product-by-id")]
         public async Task<IActionResult> GetProductById([FromQuery]GetProductByIdQuery query)
         {
-            var response = await mediator.Send(query);
-            return Ok(response);
+            var response = await Mediator.Send(query);
+            return FinalResponse(response);
         }
 
         [HttpGet("products-by-category")]
         public async Task<IActionResult> GetProductsByCategory([FromQuery] GetProductsByCategoryQuery query)
         {
-            var response = await mediator.Send(query);
-            return Ok(response);
+            var response = await Mediator.Send(query);
+            return FinalResponse(response);
         }
     }
 }

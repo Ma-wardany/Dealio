@@ -1,8 +1,7 @@
-﻿using Dealio.API.DTOs.UserProfile;
+﻿using Dealio.API.Base;
+using Dealio.API.DTOs.UserProfile;
 using Dealio.Core.Features.UserProfile.Commands.Models;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -10,14 +9,8 @@ namespace Dealio.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserProfileController : ControllerBase
+    public class UserProfileController : AppController
     {
-        private readonly IMediator mediator;
-
-        public UserProfileController(IMediator mediator)
-        {
-            this.mediator = mediator;
-        }
 
         [Authorize]
         [HttpPost("create")]
@@ -41,9 +34,8 @@ namespace Dealio.API.Controllers
                     Image = profile.Image,
                 }
             };
-
-            var response = await mediator.Send(command);
-            return Ok(response);
+            var response = await Mediator.Send(command);
+            return FinalResponse(response);
         }
 
         [HttpPut("update")]
@@ -66,8 +58,8 @@ namespace Dealio.API.Controllers
                     Image = profile.Image,
                 }
             };
-            var response = await mediator.Send(command);
-            return Ok(response);
+            var response = await Mediator.Send(command);
+            return FinalResponse(response);
         }
 
     }

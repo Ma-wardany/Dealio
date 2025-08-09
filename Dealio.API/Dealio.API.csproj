@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Dealio.Core\Dealio.Core.csproj" />
+    <ProjectReference Include="..\Dealio.Services\Dealio.Services.csproj" />
   </ItemGroup>
 
   <ItemGroup>

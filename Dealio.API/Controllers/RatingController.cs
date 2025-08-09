@@ -1,4 +1,5 @@
-﻿using Dealio.API.DTOs.Rating;
+﻿using Dealio.API.Base;
+using Dealio.API.DTOs.Rating;
 using Dealio.Core.Features.Ratings.Commands.Models;
 using Dealio.Core.Features.Ratings.Queries.Models;
 using MediatR;
@@ -6,19 +7,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Dealio.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RatingController : ControllerBase
+    public class RatingController : AppController
     {
-        private readonly IMediator mediator;
-
-        public RatingController(IMediator mediator)
-        {
-            this.mediator = mediator;
-        }
 
         [Authorize]
         [HttpPost("add")]
@@ -35,8 +31,8 @@ namespace Dealio.API.Controllers
                 RatingValue = rating.RatingValue
             };
 
-            var response = await mediator.Send(command);
-            return Ok(response);
+            var response = await Mediator.Send(command);
+            return FinalResponse(response);
         }
 
         [Authorize]
@@ -52,8 +48,8 @@ namespace Dealio.API.Controllers
                 Comment = rating.Comment,
                 RatingValue = rating.RatingValue
             };
-            var response = await mediator.Send(command);
-            return Ok(response);
+            var response = await Mediator.Send(command);
+            return FinalResponse(response);
         }
 
         [Authorize]
@@ -67,8 +63,8 @@ namespace Dealio.API.Controllers
             {
                 UserId = userId
             };
-            var response = await mediator.Send(command);
-            return Ok(response);
+            var response = await Mediator.Send(command);
+            return FinalResponse(response);
         }
 
         [Authorize]
@@ -83,16 +79,16 @@ namespace Dealio.API.Controllers
             {
                 UserId = userId
             };
-            var response = await mediator.Send(query);
-            return Ok(response);
+            var response = await Mediator.Send(query);
+            return FinalResponse(response);
         }
 
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllRatings()
         {
             var query = new GetAllRatingQuery();
-            var response = await mediator.Send(query);
-            return Ok(response);
+            var response = await Mediator.Send(query);
+            return FinalResponse(response);
         }
     }
 }

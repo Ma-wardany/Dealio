@@ -1,23 +1,19 @@
-﻿using Dealio.Core.Features.Orders.Commands.Models;
+﻿using Dealio.API.Base;
+using Dealio.Core.Features.Orders.Commands.Models;
 using Dealio.Core.Features.Orders.Queries.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Dealio.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrderController : ControllerBase
+    public class OrderController : AppController
     {
-        private readonly IMediator mediator;
-
-        public OrderController(IMediator mediator)
-        {
-            this.mediator = mediator;
-        }
 
         [Authorize]
         [HttpPost("add")]
@@ -31,8 +27,8 @@ namespace Dealio.API.Controllers
                 BuyerId = userId,
                 ProductId = productId
             };
-            var response = await mediator.Send(command);
-            return StatusCode((int)response.StatusCode, response);
+            var response = await Mediator.Send(command);
+            return FinalResponse(response);
         }
 
         [Authorize]
@@ -48,8 +44,8 @@ namespace Dealio.API.Controllers
                 OrderId = orderId,
                 BuyerId = userId
             };
-            var response = await mediator.Send(command);
-            return StatusCode((int)response.StatusCode, response);
+            var response = await Mediator.Send(command);
+            return FinalResponse(response);
         }
 
         [HttpGet("buyer-orders")]
@@ -60,8 +56,8 @@ namespace Dealio.API.Controllers
                 return Unauthorized("Unauthorized user");
 
             var query = new GetBuyerOrdersQuery { BuyerId = userId };
-            var response = await mediator.Send(query);
-            return Ok(response);
+            var response = await Mediator.Send(query);
+            return FinalResponse(response);
         }
     }
 }
